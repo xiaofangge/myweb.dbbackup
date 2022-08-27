@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>数据库备份清理日志</title>
+	<link rel="stylesheet" th:href="@{/static/lib/layui/css/layui.css}">
+	<link rel="stylesheet" th:href="@{/static/css/nicer.css}" media="all">
+</head>
+<body>
+	<!-- 备份清理日志 -->
+	<table id="clear_table" lay-filter="clear_table"></table>
+	<script id="clear_table_toolbar" type="text/html">
+		{{# if(d.clearRes === 0) { }}
+		<div class="layui-btn-container">
+			<button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="view_errMsg">查看异常
+			</button>
+		</div>
+		{{# } }}
+	</script>
+</body>
+<script th:src="@{/static/lib/layui/layui.js}"></script>
+<script th:inline="javascript">
+	const ctx = /*[[ @{/} ]]*/ "";
+	layui.use(["table", "layer"], function () {
+	   	const table = layui.table;
+		const layer = layui.layer;
+
+        table.render({
+            elem: "#clear_table",
+            url: ctx + "clearlog/list",
+            page: true,
+            limits: [10, 15, 20, 30, 50, 100, 200, 300, 500],
+			limit: 10,
+            cols: [ [
+                {type: 'numbers', title: '编号', width:"4%", sort: true}
+                ,{field: 'databaseName', title: '数据库', width: "10%",sort: true, align: "center"}
+                ,{field: 'backupTime', title: '备份时间', width:"12%", sort: true, align: "left"}
+                ,{field: 'backupPath', title: '备份路径', width:"23%", align: "left"}
+                ,{field: 'backupSize', title: '备份大小', width: "8%", sort: true, align: "center", templet: function (d) {
+                        if (d.backupSize === null) return "";
+                        let mbSize = d.backupSize / 1024 / 1024;
+                        // toFixed(): 保留小数
+                        return mbSize > 1 ? mbSize.toFixed(2) + "M" : (mbSize * 1024).toFixed(2) + "KB";
+                    }}
+                ,{field: 'clearTime', title: '清理时间', width: "12%", sort: true, align: "left"}
+                ,{field: 'clearRes', title: '清理结果', width: "7%", align: "center", templet: function (d) {
+                        if (d.clearRes === 1) {
+                            return "<span>已清理  <i class='layui-icon layui-icon-ok-circle layui-bg-green'></i></span>";
+                        } else if (d.clearRes === 0) {
+                            return "<span>异常  <i class='layui-icon layui-icon-close-fill layui-bg-red'></i></span>";
+                        } else {
+                            return "";
+                        }
+                    }}
+                ,{field: 'freeSpace', title: '释放空间', width: "8%", align: "center", sort: true, templet: function (d) {
+                        if (d.freeSpace === null) return "";
+                        let mbSize = d.freeSpace / 1024 / 1024;
+                        // toFixed(): 保留小数
+                        return mbSize > 1 ? mbSize.toFixed(2) + "M" : (mbSize * 1024).toFixed(2) + "KB";
+                    }}
+                ,{field: 'updateTime', title: '更新时间', width: "12%", sort: true, align: "left"}
+                ,{title: "操作", toolbar: "#clear_table_toolbar", width: "7%", align: "center", fixed: "right"}
+            ] ]
+        });
+
+        table.on("tool(clear_table)", function (obj) {
+            let clearData = obj.data;
+            if (obj.event === "view_errMsg") {
+                layer.open({
+                    title: "异常",
+                    content: clearData.exceptionMsg,
+					shade: [0.1, "#000"]
+                });
+            }
+        });
+	});
+</script>
+</html>

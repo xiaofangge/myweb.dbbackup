@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.ClearLogMapper">
+    <resultMap id="dbversion" type="com.pojo.ClearLog">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="database_name" jdbcType="VARCHAR" property="databaseName" />
+        <result column="backup_time" jdbcType="TIMESTAMP" property="backupTime" />
+        <result column="backup_path" jdbcType="VARCHAR" property="backupPath" />
+        <result column="backup_size" jdbcType="BIGINT" property="backupSize" />
+        <result column="clear_time" jdbcType="TIMESTAMP" property="clearTime" />
+        <result column="clear_res" jdbcType="TINYINT" property="clearRes" />
+        <result column="free_space" jdbcType="BIGINT" property="freeSpace" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    </resultMap>
+
+    <sql id="all_column">
+        id, database_name, backup_time, backup_path, backup_size, clear_time, clear_res, free_space, update_time,
+        exception_msg
+    </sql>
+    <insert id="save" parameterType="com.pojo.ClearLog" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into myweb_dbbackup.dbbackup_backup_clear_log(database_name, backup_time, backup_path, backup_size, clear_time, clear_res, free_space, update_time, exception_msg)
+            values (#{databaseName}, #{backupTime}, #{backupPath}, #{backupSize}, #{clearTime}, #{clearRes},
+        #{freeSpace}, #{updateTime});
+    </insert>
+    <select id="clearLogList" resultType="com.pojo.ClearLog" parameterType="Integer">
+        select <include refid="all_column"/>
+        from myweb_dbbackup.dbbackup_backup_clear_log order by update_time desc
+        limit #{start}, #{limit};
+    </select>
+    <select id="clearLogCount" resultType="java.lang.Long">
+        select count(1) from myweb_dbbackup.dbbackup_backup_clear_log;
+    </select>
+</mapper>

@@ -1,0 +1,7 @@
+.layui-form-checkbox[lay-skin="primary"] {
+    margin-right: -10px !important;
+}
+
+.layui-form-item .layui-form-checkbox[lay-skin="primary"] {
+    margin-top: 5px !important
+}

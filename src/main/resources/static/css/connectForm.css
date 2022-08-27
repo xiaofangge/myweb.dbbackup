@@ -1,0 +1,22 @@
+#hostConnectForm label,
+#connectionEditForm label {
+    width: 102px;
+}
+
+
+#hostConnectForm #btn_group,
+#connectionEditForm #btn_group {
+    margin-left: 43px;
+}
+
+
+#hostConnectForm > div:first-child, #connectionEditForm > div:nth-child(2) {
+    margin-top: 15px;
+}
+
+
+#hostConnectForm .layui-form-item .layui-input-inline,
+#connectionEditForm .layui-form-item .layui-input-inline {
+    width: 250px;
+}
+

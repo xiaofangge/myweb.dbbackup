@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.TableOfDatabaseMapper">
+
+    <resultMap id="table" type="com.pojo.TablesOfDatabase">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        
+        <result column="table_name" jdbcType="VARCHAR" property="tableName" />
+        <result column="table_desc" jdbcType="VARCHAR" property="tableDesc" />
+        <result column="record_num" jdbcType="INTEGER" property="recordNum" />
+        <result column="database_name" jdbcType="VARCHAR" property="databaseName" />
+        <result column="host_ip" jdbcType="VARCHAR" property="hostIp" />
+    </resultMap>
+
+    <!--  sql:相当于Java中的代码重用，需要配合 include 使用  -->
+    <sql id="Base_Column_List">
+        id, table_name, table_desc, record_num, host_ip, database_name
+    </sql>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.pojo.TablesOfDatabase">
+        insert into myweb_dbbackup.dbbackup_database_tables_info(table_name, table_desc, record_num, host_ip, database_name)
+            values (#{tableName,jdbcType=VARCHAR}, #{tableDesc,jdbcType=VARCHAR},  #{recordNum,jdbcType=INTEGER}, #{hostIp,jdbcType=VARCHAR}, #{databaseName,jdbcType=VARCHAR});
+    </insert>
+
+    <delete id="deleteBydAndh" parameterType="String">
+        delete from myweb_dbbackup.dbbackup_database_tables_info where host_ip = #{hostIp,jdbcType=VARCHAR}
+            and database_name = #{databaseName,jdbcType=VARCHAR};
+    </delete>
+
+    <select id="findAllTables" resultMap="table">
+        select id, table_name, table_desc, record_num, database_name, host_ip
+        from myweb_dbbackup.dbbackup_database_tables_info
+        where database_name = #{databaseName,jdbcType=VARCHAR} and host_ip = #{hostIp,jdbcType=VARCHAR}
+        limit #{start,jdbcType=INTEGER}, #{rows,jdbcType=INTEGER};
+    </select>
+    <select id="findAllTablesNoPage" resultType="com.pojo.TablesOfDatabase">
+        select id, table_name, table_desc, record_num, database_name, host_ip
+        from myweb_dbbackup.dbbackup_database_tables_info
+        where database_name = #{databaseName,jdbcType=VARCHAR} and host_ip = #{hostIp,jdbcType=VARCHAR};
+    </select>
+</mapper>

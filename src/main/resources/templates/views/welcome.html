@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+    <link rel="stylesheet" th:href="@{/static/lib/element.css}">
+    <style>
+        .pic_item {
+            position: relative;
+            height: 100%;
+        }
+        .pic_item:hover{
+            cursor: pointer;
+        }
+        .pic_item el-image {
+            width: 100%;
+            height: 100%;
+        }
+        .pic_item h3 {
+            position: absolute;
+            left: 50%;
+            margin-left: -22%;
+            bottom: 50%;
+            margin-bottom: -5%;
+            color: #FFFFFF;
+            font-size: 80px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-carousel :interval="3000" height="36rem" indicator-position="outside">
+        <el-carousel-item v-for="(item,index) in images" :key="index">
+            <div class="pic_item">
+                <el-image style="width:100%; height:100%" :src="item.imgUrl" fit="fit"></el-image>
+                <h3>{{ item.title }}</h3>
+            </div>
+        </el-carousel-item>
+    </el-carousel>
+</div>
+<script th:src="@{/static/lib/vue.js}" charset="utf-8"></script>
+<script th:src="@{/static/lib/element.js}"></script>
+<script th:src="@{/static/lib/axios.min.js}"></script>
+<script th:inline="javascript">
+    const ctx = /*[[ @{/} ]]*/ "";
+    const app = new Vue({
+        el: "#app",
+        data: {
+            images: [],
+        },
+        created() {
+            axios.get(ctx + "rousel/list").then((res) => {
+                if (res.status === 200) {
+                    this.images = res.data;
+                }
+            })
+        }
+    })
+</script>
+</body>
+</html>

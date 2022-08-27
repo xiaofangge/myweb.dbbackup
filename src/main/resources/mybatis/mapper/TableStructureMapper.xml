@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.TableStructureMapper">
+    <resultMap id="structure" type="com.pojo.TableStructure">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="host_ip" jdbcType="VARCHAR" property="hostIp" />
+        <result column="database_name" jdbcType="VARCHAR" property="databaseName" />
+        <result column="table_name" jdbcType="VARCHAR" property="tableName" />
+        <result column="column_name" jdbcType="VARCHAR" property="columnName" />
+        <result column="column_type" jdbcType="VARCHAR" property="columnType" />
+        <result column="column_comment" jdbcType="VARCHAR" property="columnComment" />
+    </resultMap>
+
+    <sql id="all_column">
+        id, host_ip, database_name, table_name, column_name, column_type, column_comment
+    </sql>
+
+    <insert id="insert" parameterType="com.pojo.TableStructure" keyProperty="id"  keyColumn="id" useGeneratedKeys="true">
+        insert into myweb_dbbackup.dbbackup_table_structure(host_ip, database_name, table_name, column_name, column_type, column_comment)
+        values (#{hostIp,jdbcType=VARCHAR}, #{databaseName,jdbcType=VARCHAR}, #{tableName,jdbcType=VARCHAR},
+        #{columnName,jdbcType=VARCHAR}, #{columnType,jdbcType=VARCHAR}, #{columnComment,jdbcType=VARCHAR});
+    </insert>
+
+    <select id="findStructureInfo" resultMap="structure">
+        select <include refid="all_column" /> from myweb_dbbackup.dbbackup_table_structure
+        where host_ip = #{hostIp,jdbcType=VARCHAR} and database_name = #{databaseName,jdbcType=VARCHAR}
+        and table_name = #{tableName,jdbcType=VARCHAR}
+        limit #{start,jdbcType=INTEGER}, #{limit,jdbcType=INTEGER};
+    </select>
+</mapper>

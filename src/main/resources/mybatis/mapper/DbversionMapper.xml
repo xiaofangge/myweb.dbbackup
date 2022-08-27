@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.DbversionConfigMapper">
+    <resultMap id="dbversion" type="com.pojo.DbversionConfig">
+        <id column="id" jdbcType="INTEGER" property="id" />
+
+        <result column="db_version" jdbcType="VARCHAR" property="dbVersion" />
+        <result column="exe_file_name" jdbcType="VARCHAR" property="exeFileName" />
+    </resultMap>
+
+    <sql id="all_column">
+        id, db_version, exe_file_name
+    </sql>
+
+    <select id="dbversionList" resultMap="dbversion">
+        select <include refid="all_column" /> from myweb_dbbackup.dbbackup_dbversion_config order by id;
+    </select>
+</mapper>

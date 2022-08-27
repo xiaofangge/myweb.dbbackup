@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.UserMapper">
+
+    <resultMap id="user" type="com.pojo.User">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="username" jdbcType="VARCHAR" property="username" />
+        <result column="password" jdbcType="VARCHAR" property="password" />
+    </resultMap>
+
+
+    <sql id="all_column">
+        id, username, password
+    </sql>
+
+    <select id="queryUserByName" resultMap="user" parameterType="String">
+        select <include refid="all_column"/> from myweb_dbbackup.dbbackup_admin_user where username = #{username};
+    </select>
+
+    <insert id="save" parameterType="com.pojo.User">
+        insert into myweb_dbbackup.dbbackup_admin_user(username, password) VALUES (#{username}, #{password});
+    </insert>
+
+    <select id="queryById" parameterType="Integer" resultMap="user">
+        select <include refid="all_column"/> from myweb_dbbackup.dbbackup_admin_user
+        where id = #{k};
+    </select>
+
+    <update id="updatePwd">
+        update myweb_dbbackup.dbbackup_admin_user
+        set password = #{newPassword} where id = #{id};
+    </update>
+</mapper>

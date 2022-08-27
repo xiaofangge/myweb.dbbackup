@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.RuleMapper">
+    <resultMap id="rule" type="com.pojo.Rule">
+        <id column="id" jdbcType="INTEGER" property="id" />
+
+        <result column="backup_week" jdbcType="INTEGER" property="backupWeek" />
+        <result column="backup_wholePoint" jdbcType="VARCHAR" property="backupWholePoint" />
+        <result column="backup_cycle" jdbcType="INTEGER" property="backupCycle" />
+        <result column="database_id" jdbcType="INTEGER" property="databaseId" />
+    </resultMap>
+
+    <sql id="rule_column">
+        id, backup_week, backup_wholePoint, backup_cycle, database_id
+    </sql>
+
+    <insert id="saveRule" parameterType="com.pojo.Rule" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into myweb_dbbackup.dbbackup_backup_rules(backup_week, backup_wholePoint, backup_cycle, database_id) VALUES
+        (#{backupWeek,jdbcType=INTEGER}, #{backupWholePoint,jdbcType=VARCHAR},
+        #{backupCycle,jdbcType=INTEGER}, #{databaseId,jdbcType=INTEGER});
+    </insert>
+
+    <delete id="deleteRule" parameterType="Integer">
+        delete from myweb_dbbackup.dbbackup_backup_rules where database_id = #{databaseId,jdbcType=INTEGER};
+    </delete>
+
+    <select id="getRule" resultMap="rule">
+        select <include refid="rule_column" />
+        from myweb_dbbackup.dbbackup_backup_rules
+        <where>
+            <if test="databaseId != null">
+                database_id = #{databaseId,jdbcType=INTEGER}
+            </if>
+        </where>
+    </select>
+    <select id="getBackupCycle" resultType="java.lang.Integer" parameterType="Integer">
+        select distinct backup_cycle from myweb_dbbackup.dbbackup_backup_rules where database_id = #{databaseId};
+    </select>
+</mapper>

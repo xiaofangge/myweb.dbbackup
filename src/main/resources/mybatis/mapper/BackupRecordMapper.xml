@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.BackupRecordMapper">
+
+    <resultMap id="recordMap" type="com.pojo.BackupRecord">
+        <!--@mbg.generated-->
+        <!--@Table -->
+        <id column="id" jdbcType="INTEGER" property="id" />
+
+        <result column="backup_database" jdbcType="VARCHAR" property="backupDatabase" />
+        <result column="backup_time" jdbcType="TIMESTAMP" property="backupTime" />
+        <result column="backup_method" jdbcType="TINYINT" property="backupMethod" />
+        <result column="backup_res" jdbcType="TINYINT" property="backupRes" />
+        <result column="backup_path" jdbcType="VARCHAR" property="backupPath" />
+        <result column="backup_size" jdbcType="BIGINT" property="backupSize" />
+        <result column="backup_fee" jdbcType="BIGINT" property="backupFee" />
+        <result column="backup_type" jdbcType="VARCHAR" property="backupType" />
+        <result column="usable_space" jdbcType="BIGINT" property="usableSpace" />
+        <result column="remark" jdbcType="VARCHAR" property="remark" />
+        <result column="file_count" jdbcType="INTEGER" property="fileCount" />
+        <result column="err_log" jdbcType="VARCHAR" property="errLog" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, backup_database ,backup_time, backup_method, backup_res, backup_path, backup_size,
+        backup_fee, backup_type, usable_space ,remark, file_count, err_log
+    </sql>
+
+    <!--  useGeneratedKeys=true表示使用数据库自动增长的主键  -->
+    <insert id="insert" parameterType="com.pojo.BackupRecord" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into myweb_dbbackup.dbbackup_backup_record(backup_database, backup_time, backup_method, backup_res, backup_path,
+        backup_size, backup_fee, backup_type, usable_space , remark, file_count, err_log)
+        values (#{backupDatabase,jdbcType=VARCHAR}, #{backupTime,jdbcType=TIMESTAMP}, #{backupMethod,jdbcType=TINYINT}, #{backupRes,jdbcType=TINYINT},
+                #{backupPath,jdbcType=VARCHAR}, #{backupSize,jdbcType=BIGINT}, #{backupFee,jdbcType=BIGINT},
+                #{backupType,jdbcType=VARCHAR}, #{usableSpace,jdbcType=BIGINT},
+                #{remark,jdbcType=VARCHAR}, #{fileCount,jdbcType=INTEGER}, #{errLog,jdbcType=VARCHAR});
+    </insert>
+
+    <select id="findAllRecord" resultMap="recordMap">
+        select <include refid="Base_Column_List" />
+        from myweb_dbbackup.dbbackup_backup_record
+        <where>
+            <if test="database != null and database != ''">
+                backup_database like concat('%', #{database,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="res != null and res != ''">
+                and backup_res in (#{res, jdbcType=INTEGER})
+            </if>
+        </where>
+        order by backup_time desc limit #{start,jdbcType=INTEGER}, #{rows,jdbcType=INTEGER};
+    </select>
+
+    <select id="getRecordTotal" resultType="Long">
+        select count(1) from myweb_dbbackup.dbbackup_backup_record
+        <where>
+            <if test="database != null and database != ''">
+                backup_database like concat('%', #{database,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="res != null and res != ''">
+                and backup_res in (#{res, jdbcType=INTEGER})
+            </if>
+        </where>
+    </select>
+    <select id="findDatabase" resultType="com.pojo.BackupRecord">
+        select distinct backup_database from myweb_dbbackup.dbbackup_backup_record;
+    </select>
+    <select id="findRecordByName" resultType="com.pojo.BackupRecord">
+        select id, backup_database, backup_time, backup_path, backup_size
+        from myweb_dbbackup.dbbackup_backup_record where backup_database = #{databaseName};
+    </select>
+</mapper>

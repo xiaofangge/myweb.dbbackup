@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>数据库备份记录</title>
+	<meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+	<link rel="stylesheet" th:href="@{/static/lib/layui/css/layui.css}">
+	<link rel="stylesheet" th:href="@{/static/css/nicer.css}" media="all">
+</head>
+<body>
+	<div class="layui-row">
+		<div class="layui-col-md12">
+			<fieldset class="layui-elem-field" style="margin-bottom: 0;margin-top: 0;">
+				<legend><span style="font-size: 12px;">搜索条件</span></legend>
+				<div class="layui-field-box" style="padding-top: 12px;padding-bottom: 0;">
+					<form class="layui-form layui-form-pane">
+						<div class="layui-form-item">
+							<div class="layui-inline">
+								<label class="layui-form-label" for="database_search">数据库</label>
+								<div class="layui-input-inline" id="database_search_div">
+									<select id="database_search" name="database_search">
+										<option selected value="">请选择</option>
+									</select>
+								</div>
+							</div>
+							<div class="layui-inline">
+								<label class="layui-form-label" for="database_search">备份结果</label>
+								<div class="layui-input-inline">
+									<select name="res_search">
+										<option selected value="">全部</option>
+										<option value="0">失败</option>
+										<option value="1">成功</option>
+									</select>
+								</div>
+
+								<button class="layui-btn layui-btn-normal layui-btn-radius" lay-filter="record_search"
+										lay-submit>
+									查询 <i class="layui-icon layui-icon-search"></i>
+								</button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</fieldset>
+		</div>
+		<div class="layui-col-md12">
+			<!--  备份记录表格  -->
+			<table id="record_table" lay-filter="record_table"></table>
+			<script id="record_table_toolbar" type="text/html">
+				{{# if(d.backupRes === 1) { }}
+				<div class="layui-btn-container">
+					<button class="layui-btn layui-btn-sm" lay-event="view_files">查看文件</button>
+				</div>
+				{{# } }}
+				{{# if(d.backupRes === 0) { }}
+				<div class="layui-btn-container">
+					<button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="view_errMsg">查看原因
+					</button>
+				</div>
+				{{# } }}
+			</script>
+		</div>
+	</div>
+
+	<div style="display: none" id="file_table_div">
+		<div class="layui-row">
+			<div class="layui-col-md11" style="width: 1079px;margin-bottom: -10px">
+				<fieldset class="layui-elem-field">
+					<legend><span style="font-size: 12px;">搜索条件</span></legend>
+					<div class="layui-field-box" style="padding-top: 0; padding-bottom: 0;">
+						<form class="layui-form layui-form-pane">
+							<div class="layui-form-item" style="margin-bottom: 4px;">
+								<div class="layui-inline">
+									<label class="layui-form-label" for="tableName">表名</label>
+									<div class="layui-input-inline" style="width: 200px;">
+										<input type="text" id="tableName" name="tableName" placeholder="表名" autocomplete="off" class="layui-input">
+									</div>
+								</div>
+								<div class="layui-inline">
+									<label class="layui-form-label" for="orderBy">排序依据</label>
+									<div class="layui-input-inline" style="width: 100px">
+										<select name="orderBy" id="orderBy">
+											<option value="table_name" selected>表名</option>
+											<option value="table_line">表行数</option>
+											<option value="file_size">文件大小</option>
+										</select>
+									</div>
+								</div>
+								<div class="layui-inline">
+									<label class="layui-form-label" for="orderMethod">排序方式</label>
+									<div class="layui-input-inline" style="width: 100px;">
+										<select name="orderMethod" id="orderMethod">
+											<option selected value="asc">升序</option>
+											<option value="desc">降序</option>
+										</select>
+									</div>
+								</div>
+								<div class="layui-inline">
+									<button class="layui-btn layui-btn-normal layui-btn-radius" lay-filter="file_search" lay-submit>
+										查询 <i class="layui-icon layui-icon-search"></i>
+									</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</fieldset>
+			</div>
+			<div class="layui-col-md1">
+				<button style="margin-top: 21px;" class="layui-btn" id="downloadAll">全部下载 <i
+						class="layui-icon-download-circle layui-icon"></i></button>
+			</div>
+		</div>
+		<!-- 文件表 -->
+		<table id="file_table" lay-filter="file_table"></table>
+	</div>
+
+	<script type="text/html" id="file_table_toolbar">
+		<div class="layui-btn-container">
+			<a lay-event="download" class='layui-btn' style='height: 20px; line-height: 20px'><i
+					class='layui-icon layui-icon-download-circle'></i></a>
+		</div>
+	</script>
+</body>
+<script th:src="@{/static/lib/layui/layui.js}"></script>
+<script th:inline="javascript">
+	const ctx = /*[[ @{/} ]]*/ "";
+	layui.use(["table", "layer", "form", "jquery"], function () {
+	    const table = layui.table;
+	    const layer = layui.layer;
+	    const form = layui.form;
+	    const $ = layui.jquery;
+
+        $(document).ready(function () {
+            $.ajax({
+                type: "GET",
+                url: "record/database",
+                cache: false,
+                success: function (res) {
+                    $.each(res, function (index, item) {
+                        $("#database_search").append(new Option(item.backupDatabase, item.backupDatabase));
+                        form.render("select");
+                    });
+                }
+            });
+        })
+
+        /**
+         * 将毫秒数转为分秒形式
+         * @param msTime
+         * @returns {string}
+         */
+        function formatTime(msTime) {
+            let time = msTime /1000;
+            let minute = Math.floor(time /60) % 60;
+            let second = (time % 60).toFixed(2);
+
+            if (minute > 0) {
+                return `${minute}分${second}秒`;
+            } else {
+                return `${second}秒`;
+            }
+        }
+
+        table.render({
+            elem: "#record_table",
+            id: "record_table",
+            url: ctx + "record/list",
+            method: "GET",
+            page: true,
+            limits: [10,20,30,40,50,60,70,80,90,100,200,300],
+			limit: 10,
+            cols: [[
+                {type: "numbers", title: "序号", width: "4%", fixed: "left", sort: true, align: "center"},
+                {field: "backupDatabase", title: "数据库", width: "10%", align: "center"},
+                {field: "backupTime", title: "备份时间", width: "12%", align: "left", sort: true},
+                {
+                    field: "backupMethod", title: "备份方式", width: "7%", align: "center", templet: function (d) {
+                        if (d.backupMethod === 1) {
+                            return "定时任务";
+                        } else if (d.backupMethod === 0) {
+                            return "人工备份";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                {
+                    field: "backupRes", title: "备份结果", width: "7%", align: "center", templet: function (d) {
+                        if (d.backupRes === 1) {
+                            return "<span>成功  <i class='layui-icon layui-icon-ok-circle layui-bg-green'></i></span>";
+                        } else if (d.backupRes === 0) {
+                            return "<span>失败  <i class='layui-icon layui-icon-close-fill layui-bg-red'></i></span>";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                {field: "fileCount", title: "文件数", width: "7%", align: "center", sort: true},
+                {
+                    field: "backupPath", title: "备份路径", width: "23%", align: "left", templet: function (d) {
+                        if (d.backupPath === null) return "";
+                        return "<div style='text-align: left'>" + d.backupPath + "</div>";
+                    }
+                },
+                {
+                    field: "backupSize",
+                    title: "备份大小",
+                    width: "8%",
+                    align: "center",
+                    sort: true,
+                    templet: function (d) {
+                        if (d.backupSize === null) return "";
+                        let mbSize = d.backupSize / 1024 / 1024;
+                        // toFixed(): 保留小数
+                        return mbSize > 1 ? mbSize.toFixed(2) + "M" : (mbSize * 1024).toFixed(2) + "KB";
+                    }
+                },
+                {
+                    field: "backupFee",
+                    title: "备份时长",
+                    width: "8%",
+                    align: "center",
+                    sort: true,
+                    templet: function (d) {
+                        if (d.backupFee === null) return "";
+                        return formatTime(d.backupFee);
+                    }
+                },
+                {field: "backupType", title: "备份格式", width: "7%", align: "center"},
+                {
+                    field: "usableSpace", title: "磁盘剩余", width: "7%", align: "center", templet: function (d) {
+                        if (d.usableSpace === null) return "";
+                        let spaceM = d.usableSpace / 1024 / 1024;
+                        return (spaceM > 1024) ? (spaceM / 1024).toFixed(2) + "G" : (spaceM).toFixed(2) + "M";
+                    }
+                },
+                {field: "remark", title: "备注", width: "5%", align: "center"},
+                {title: "操作", toolbar: "#record_table_toolbar", width: "7%", align: "center", fixed: "right"}
+            ]]
+        });
+
+        form.on("submit(record_search)", function (obj) {
+            let data = obj.field;
+            table.reload("record_table", {
+                where: {
+                    database: data.database_search,
+                    backupRes: data.res_search
+                },
+                page: {
+                    curr: 1
+                }
+            });
+            return false;
+        });
+
+        let recordData;
+
+        // 航工具栏触发事件
+        table.on("tool(record_table)", function (obj) {
+            recordData = obj.data;
+            switch (obj.event) {
+                case "view_files":
+                    table.render({
+                        elem: "#file_table",
+                        url: ctx + "backupFile/list",
+                        method: "POST",
+                        id: "file_table",
+                        page: true,
+                        limits: [10, 20, 50, 100, 200, 300],
+                        where: {
+                            "recordId": recordData.id,
+                            "tableName": "",
+                            "orderBy": "",
+                            "orderMethod": ""
+                        },
+                        cols: [ [
+                            {
+                                type: "numbers",
+                                title: "序号",
+                                width: "5%",
+                                fixed: "left",
+                                sort: true,
+                                align: "center"
+                            },
+                            {field: "fileName", title: "文件名", width: "45%", align: "left"},
+                            {field: "tableName", title: "表名", width: "20%", align: "left"},
+                            {field: "tableLine", title: "表行数", width: "10%", align: "center"},
+                            {
+                                field: "fileSize",
+                                title: "文件大小",
+                                width: "10%",
+                                align: "center",
+                                templet: function (d) {
+                                    if (d.fileSize === null) return "";
+                                    let mbSize = d.fileSize / 1024 / 1024;
+                                    // toFixed(): 保留小数
+                                    return mbSize > 1 ? mbSize.toFixed(2) + "M" : (mbSize * 1024).toFixed(2) + "KB";
+                                }
+                            },
+                            {title: "下载", width: "10%", align: "center", toolbar: "#file_table_toolbar"}
+                        ] ]
+                    });
+
+
+                    layer.open({
+                        // 1 - 页面层
+                        type: 1,
+                        title: "文件表",
+                        area: ["1200px", "100%"],
+                        content: $("#file_table_div"),
+						shade: [0.1, "#000"],
+                        resize: false
+                    });
+                    // 文件表重载
+                    form.on("submit(file_search)", function (data) {
+                        let fileSearch = data.field;
+                        console.log(fileSearch);
+                        if (fileSearch.orderBy === "") {
+                            layer.msg("请选择排序依据", {icon: 1, time: 1000});
+                            return false;
+                        }
+                        table.reload("file_table", {
+                            where: {
+                                "recordId": recordData.id,
+                                "tableName": fileSearch.tableName,
+                                "orderBy": fileSearch.orderBy,
+                                "orderMethod": fileSearch.orderMethod
+                            },
+                            page: {
+                                curr: 1
+                            }
+                        });
+                        return false;
+                    });
+                    break;
+                case "view_errMsg":
+                    console.log(recordData);
+                    layer.open({
+                        title: '失败原因',
+                        content: recordData.errLog,
+						shade: [0.1, "#000"]
+                    });
+                    break;
+            }
+        });
+
+        // 实现全部下载
+        $("#file_table_div").find("#downloadAll").click(function () {
+            console.log(recordData);
+            layer.confirm("确定下载全部文件吗?", {icon: 3, title: "提示", shade: [0.05, "#000"]}, function (index) {
+                window.location.href = ctx +"backupFile/downloadAll?totalFilePath=" + recordData.backupPath + "&backupDatabase=" + recordData.backupDatabase;
+                layer.close(index);
+            });
+        });
+
+
+        // 下载文件
+        table.on("tool(file_table)", function (obj) {
+            let fileData = obj.data;
+            let totalFileName = recordData.backupPath + "\\" + fileData.fileName;
+            switch (obj.event) {
+                case "download":
+                    layer.confirm("确定下载文件吗?", {icon: 3, title: "提示", shade: [0.05, "#000"]}, function (index) {
+                        window.location.href = "backupFile/download?totalFileName=" + totalFileName;
+                        layer.close(index);
+                    });
+                    break;
+            }
+        });
+	})
+</script>
+</html>

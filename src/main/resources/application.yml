@@ -1,0 +1,51 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+spring:
+  mvc:
+    static-path-pattern: /static/**
+  application:
+    name: 数据库自动备份应用平台
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      url: jdbc:mysql://localhost:3306/myweb_dbbackup?serverTimezone=Asia/Shanghai&characterEncoding=utf-8&useSSL=true&useUnicode=true # url
+      username: root          # 用户名
+      password: EUqGOawMgKmgKKRG5HVEird32h2eC8yrm6y8K7uobOk7j9/TITvAd9DhogF+GNHiI9mlBUoE0kXBSl2MCpyY8A== # 加密过的密码
+      filters: config         # 配置插件
+      connect-properties:
+        config.decrypt: true
+        config.decrypt.key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAINDfzOHzv4jKWxqV438btUNUXy8X2I0DEWzYRwzc6z295XOoieUgFdmpTv7/qK+1COXFkjTq/HSIpLyWjXGxAkCAwEAAQ== # 公钥
+      validation-query: select 1
+      test-while-idle: true   # 当程序请求连接，池在分配连接时，是否先检查该连接是否有效
+      test-on-borrow: true    # 程序申请连接时，进行连接有效性检查（低效，影响性能）
+      test-on-return: true    # 程序返还连接时，进行连接有效性检查（低效，影响性能）
+      initial-size: 10        # 启动程序时，在连接池中初始化多少个连接
+      max-active: 20          # 连接池中最多支持多少个活动会话
+      max-wait: 500000        # 程序向连接池中请求连接时，超过max-wait的值后，认为本次请求失败
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: LEGACYHTML5 #使用非严格的HTMl5
+    cache: false
+    servlet:
+      content-type: text/html
+    encoding: UTF-8
+
+mybatis:
+  type-aliases-package: com.pojo
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:/mybatis/mapper/*.xml
+
+
+
+
+

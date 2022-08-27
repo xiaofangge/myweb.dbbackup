@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.SysLogMapper">
+
+    <resultMap id="syslog" type="com.pojo.SysLog">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="user_id" jdbcType="INTEGER" property="userId" />
+        <result column="message" jdbcType="VARCHAR" property="message" />
+        <result column="operation" jdbcType="VARCHAR" property="operation" />
+        <result column="method" jdbcType="VARCHAR" property="method" />
+        <result column="params" jdbcType="VARCHAR" property="params" />
+        <result column="ip" jdbcType="VARCHAR" property="ip" />
+        <result column="request_time" jdbcType="TIMESTAMP" property="requestTime" />
+        <result column="request_url" jdbcType="VARCHAR" property="requestUrl" />
+        <result column="request_way" jdbcType="VARCHAR" property="requestWay" />
+        <result column="total_time" jdbcType="BIGINT" property="totalTime" />
+        <association property="user" javaType="com.pojo.User">
+            <result column="username" jdbcType="VARCHAR" property="username" />
+        </association>
+    </resultMap>
+
+    <insert id="save" parameterType="com.pojo.SysLog">
+        insert into myweb_dbbackup.dbbackup_sys_log(user_id, message, operation, method, params, ip, request_time, total_time, request_url, request_way) VALUES
+        (#{userId}, #{message}, #{operation}, #{method}, #{params}, #{ip}, #{requestTime}, #{totalTime}, #{requestUrl}, #{requestWay});
+    </insert>
+
+    <select id="sysLogList" resultMap="syslog">
+        select user_id, message, operation, method, params, ip, request_url, request_time, request_way, total_time, dau.username
+        from myweb_dbbackup.dbbackup_sys_log sl
+        left join myweb_dbbackup.dbbackup_admin_user dau on sl.user_id = dau.id
+        order by sl.request_time desc
+        limit #{start}, #{limit}
+    </select>
+
+    <select id="sysLogCount" resultType="java.lang.Long">
+        select count(1) from myweb_dbbackup.dbbackup_sys_log;
+    </select>
+</mapper>

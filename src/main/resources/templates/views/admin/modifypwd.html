@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>修改密码</title>
+    <link rel="stylesheet" th:href="@{/static/lib/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" th:href="@{/static/lib/font-awesome/css/font-awesome.css}" media="all">
+    <link rel="stylesheet" th:href="@{/static/css/nicer.css}" media="all">
+    <style>
+        .div-content {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .layui-input-inline {
+            width: 300px!important;
+        }
+        .fa-eye {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="div-content">
+        <form class="layui-form" action="">
+            <div class="layui-form-item">
+                <label class="layui-form-label" for="oldPassword">原密码:</label>
+                <div class="layui-input-inline">
+                    <input type="password" id="oldPassword" name="oldPassword" lay-verify="password" placeholder="原密码" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux"><i class="fa fa-eye lookPwd" aria-hidden="true"></i></div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label" for="newPassword">新密码:</label>
+                <div class="layui-input-inline">
+                    <input id="newPassword" type="password" name="newPassword" lay-verify="password" placeholder="新密码" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux"><i class="fa fa-eye lookPwd" aria-hidden="true"></i></div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label" for="re_newPassword">确认密码:</label>
+                <div class="layui-input-inline">
+                    <input id="re_newPassword" type="password" name="re_newPassword" lay-verify="password" placeholder="确认密码" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux"><i class="fa fa-eye lookPwd" aria-hidden="true"></i></div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn layui-btn-normal layui-btn-radius" lay-submit lay-filter="modify-pwd">立即修改</button>
+                    <button type="reset" class="layui-btn layui-btn-primary layui-btn-radius" style="margin-left: 135px;">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script th:src="@{/static/lib/layui/layui.js}" charset="utf-8"></script>
+    <script th:inline="javascript">
+        const ctx = /*[[ @{/} ]]*/ "";
+        let userId = [[ ${session.loginAdmin.id} ]];
+
+        layui.use(["form", "layer", "jquery"], function () {
+            const form = layui.form;
+            const layer = layui.layer;
+            const $ = layui.$;
+            // 表单验证
+            form.verify({
+                /**
+                 * @param value 表单的值
+                 * @param item  表单的DOM对象
+                 */
+                password: function (value, item) {
+                    if ("" === value) {
+                        return "密码不能为空";
+                    }
+                }
+            });
+            let index = parent.layer.getFrameIndex(window.name);
+
+            form.on("submit(modify-pwd)", function (data) {
+                let pwdData = data.field;
+                if (pwdData.re_newPassword !== pwdData.newPassword) {
+                    layer.msg("两次密码输入不一致", {icon: 5, time: 2000});
+                    return false;
+                }
+                let param = {
+                    "userId": userId,
+                    "oldPassword": pwdData.oldPassword,
+                    "newPassword": pwdData.newPassword
+                }
+                $.ajax({
+                    type: "POST",
+                    url: ctx + "user/modifyPwd",
+                    data: JSON.stringify(param),
+                    contentType: "application/json;charset=UTF-8",
+                    success: function (res) {
+                        if (res.code === 200) {
+                            layer.confirm(res.msg, {icon: 1, title: "提示", btn: ['确定']}, function (index) {
+                                layer.close(index);
+                                parent.layer.close(index);
+                                parent.location.href = "/";
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 5, time: 2000});
+                        }
+                    },
+                    error: function () {
+                        layer.msg("发送修改密码请求失败", {icon: 2, time: 2000});
+                    }
+                })
+                return false;
+            });
+
+
+            let $lookPwd = $(".lookPwd");
+            // 点击眼睛看密码
+            function pwdLook() {
+                $lookPwd.each(function (index, item) {
+                    $(item).click(function () {
+                        let $input = $(item).parent().siblings("div").find("input")
+                        if ($input.attr("type") === "password") {
+                            $input.attr("type", "text");
+                            $(item).removeClass("fa-eye").addClass("fa-eye-slash");
+                        } else {
+                            $input.attr("type", "password");
+                            $(item).removeClass("fa-eye-slash").addClass("fa-eye");
+                        }
+                    });
+                })
+            }
+            pwdLook();
+        });
+    </script>
+</body>
+</html>

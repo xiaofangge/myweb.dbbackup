@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.DatabaseConfigMapper">
+
+  <resultMap id="BaseResultMap" type="com.pojo.DatabaseConfig">
+    <!--@mbg.generated-->
+    <id column="id" jdbcType="INTEGER" property="id" />
+
+    <result column="host_ip" jdbcType="VARCHAR" property="hostIp" />
+    <result column="host_port" jdbcType="INTEGER" property="hostPort" />
+    <result column="database_name" jdbcType="VARCHAR" property="databaseName" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="save_path" jdbcType="VARCHAR" property="savePath" />
+    <result column="file_name" jdbcType="VARCHAR" property="fileName" />
+    <result column="save_type" jdbcType="VARCHAR" property="saveType" />
+    <result column="copy_time" jdbcType="TIMESTAMP" property="copyTime" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="largest_size" jdbcType="BIGINT" property="largestSize" />
+    <result column="exec_flag" jdbcType="TINYINT" property="execFlag" />
+    <result column="db_version" jdbcType="INTEGER" property="dbVersion" />
+    <association property="dbversionConfig" javaType="com.pojo.DbversionConfig" column="db_version">
+      <result column="exe_file_name" jdbcType="VARCHAR" property="exeFileName" />
+    </association>
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    id, host_ip, host_port, database_name, username, password, file_name, save_type, copy_time, save_path, largest_size, exec_flag, db_version
+  </sql>
+
+
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.pojo.DatabaseConfig" useGeneratedKeys="true">
+    <!--@mbg.generated-->
+        insert into myweb_dbbackup.dbbackup_database_config(host_ip, host_port, database_name, username, password, save_path, file_name, save_type, db_version)
+        values (#{hostIp,jdbcType=VARCHAR}, #{hostPort,jdbcType=INTEGER}, #{databaseName,jdbcType=VARCHAR},
+    #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{savePath,jdbcType=VARCHAR},
+    #{fileName,jdbcType=VARCHAR}, #{saveType,jdbcType=VARCHAR}, #{dbVersion});
+  </insert>
+
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.pojo.DatabaseConfig">
+    <!--@mbg.generated-->
+    update myweb_dbbackup.dbbackup_database_config
+    <set>
+      <if test="hostIp != null">
+        host_ip = #{hostIp,jdbcType=VARCHAR},
+      </if>
+      <if test="hostPort != null">
+        host_port = #{hostPort,jdbcType=INTEGER},
+      </if>
+      <if test="databaseName != null">
+        database_name = #{databaseName,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="savePath != null">
+        save_path = #{savePath,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null">
+        file_name = #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="saveType != null">
+        save_type = #{saveType,jdbcType=VARCHAR},
+      </if>
+      <if test="copyTime != null">
+        copy_time = #{copyTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="largestSize != null">
+        largest_size = #{largestSize,jdbcType=BIGINT},
+      </if>
+      <if test="execFlag != null">
+        exec_flag = #{execFlag,jdbcType=TINYINT},
+      </if>
+      <if test="dbVersion != null">
+        db_version = #{dbVersion,jdbcType=INTEGER}
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <select id="findConnectionInfo" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" />
+    from myweb_dbbackup.dbbackup_database_config order by database_name limit #{start}, #{rows};
+  </select>
+
+  <select id="getConnectionInfoTotal" resultType="Long">
+    select count(1) from myweb_dbbackup.dbbackup_database_config;
+  </select>
+
+  <delete id="deleteInfoById">
+    delete from myweb_dbbackup.dbbackup_database_config where id = #{id,jdbcType=INTEGER};
+  </delete>
+
+  <update id="updateBackupTime">
+    update myweb_dbbackup.dbbackup_database_config set copy_time = now() where id = #{id,jdbcType=INTEGER};
+  </update>
+
+  <update id="updateBackupLargestSize">
+    update myweb_dbbackup.dbbackup_database_config set largest_size = #{largestSize,jdbcType=BIGINT} where id = #{id,jdbcType=INTEGER};
+  </update>
+
+  <select id="findAllTasks" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" />
+    from myweb_dbbackup.dbbackup_database_config;
+  </select>
+
+  <select id="select" resultMap="BaseResultMap">
+    select dc.id, dc.host_ip, dc.host_port, dc.database_name, dc.username, dc.password, dc.file_name, dc.save_type, dc.copy_time, dc.save_path, dc.largest_size, dc.exec_flag, dc.db_version,
+    hdc.exe_file_name
+    from myweb_dbbackup.dbbackup_database_config dc left join myweb_dbbackup.dbbackup_dbversion_config hdc on dc.db_version = hdc.id
+    where dc.id = #{id,jdbcType=INTEGER};
+  </select>
+</mapper>

@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>数据库连接信息</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" th:href="@{/static/lib/layui/css/layui.css}" media="all">
+	<link rel="stylesheet" th:href="@{/static/css/connectForm.css}">
+	<link rel="stylesheet" th:href="@{/static/css/backupRule.css}">
+	<link rel="stylesheet" th:href="@{/static/css/nicer.css}" media="all">
+	<style>
+		.layui-table-cell {
+            height: 38px;
+            line-height: 38px;
+		}
+	</style>
+</head>
+<body>
+	<div class="layui-row">
+		<div class="layui-col-md12">
+			<!--  连接信息表格  -->
+			<table id="connection_table" lay-filter="connection_table"></table>
+		</div>
+		<script type="text/html" id="connection_table_toolbar">
+			<div class="layui-btn-container">
+				<div>
+					<button class="layui-btn layui-btn-md" lay-event="edit">编辑</button>
+					<button class="layui-btn layui-btn-md layui-btn-normal" lay-event="backupRule">备份规则</button>
+					<button class="layui-btn layui-btn-md layui-btn-normal" lay-event="copy">立即备份</button>
+					<button class="layui-btn layui-btn-md layui-btn-normal" lay-event="view">数据表</button>
+					<button class="layui-btn layui-btn-md layui-btn-danger" lay-event="delete"><i class="layui-icon">&#xe640;</i></button>
+				</div>
+			</div>
+		</script>
+		<script type="text/html" id="connection_table_add">
+			<div class="layui-btn-container">
+				<button class="layui-btn layui-btn-md layui-btn-normal layui-btn-radius" lay-event="add">
+					<i class="layui-icon">&#xe654;</i>添加连接信息
+				</button>
+			</div>
+		</script>
+	</div>
+<div style="display: none" id="data_tables_div">
+	<!-- 数据表 -->
+	<table id="data_tables" lay-filter="data_tables"></table>
+</div>
+
+<div id="table_structure_div" style="display: none">
+	<!-- 表结构 -->
+	<table id="table_structure" lay-filter="table_structure"></table>
+</div>
+
+<script id="data_tables_tool" type="text/html">
+	<div class="layui-btn-container">
+		<button class="layui-btn layui-btn-sm" lay-event="structure">表结构</button>
+	</div>
+</script>
+
+<!-- 数据库连接表单 -->
+<form class="layui-form" action="" th:object="${dbversionList}" id="hostConnectForm" style="display: none">
+	<div class="layui-form-item">
+		<div class="layui-inline">
+			<label class="layui-form-label" for="hostIp">服务器地址</label>
+			<div class="layui-input-inline">
+				<input type="text" id="hostIp" name="hostIp" required lay-verify="required" placeholder="服务器地址"
+					   class="layui-input">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label" for="hostPort">端口</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="hostPort" lay-verify="required" name="hostPort" placeholder="3306"
+					   required type="text">
+			</div>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-inline">
+			<label class="layui-form-label" for="databaseName">数据库名称</label>
+			<div class="layui-input-inline">
+				<input type="text" id="databaseName" name="databaseName" required lay-verify="required"
+					   placeholder="需要备份的数据库名称" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label" for="dbVersion">数据库版本</label>
+			<div class="layui-input-inline">
+				<select id="dbVersion" name="dbVersion" lay-verify="required">
+					<option value=""></option>
+					<option th:each="dbversion : ${dbversionList}" th:value="${dbversion.id}" th:text="${dbversion.dbVersion}"></option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-inline">
+			<label class="layui-form-label" for="username">数据库用户名</label>
+			<div class="layui-input-inline">
+				<input type="text" id="username" name="username" required lay-verify="required" placeholder="数据库用户名" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label" for="password">数据库连接密码</label>
+			<div class="layui-input-inline">
+				<input type="password" id="password" name="password" required lay-verify="required" placeholder="数据库连接密码" class="layui-input">
+			</div>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-inline">
+			<label class="layui-form-label" for="savePath">保存路径</label>
+			<div class="layui-input-inline">
+				<input type="text" id="savePath" name="savePath" required lay-verify="required" placeholder="保存路径,如:D:\db" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label" for="fileName">保存文件夹名称</label>
+			<div class="layui-input-inline">
+				<input type="text" id="fileName" name="fileName" required lay-verify="required" placeholder="如:mlpmisdb" class="layui-input">
+			</div>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label" for="saveType">备份格式</label>
+		<div class="layui-input-inline">
+			<select id="saveType" name="saveType" lay-filter="saveType">
+				<option value="sql" selected>.sql文件</option>
+				<option value="dump">.dump文件</option>
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-input-block" style="text-align: center;margin-left: 0;">
+			<button class="layui-btn layui-btn-primary" id="testConnection">测试连接</button>
+			<button class="layui-btn layui-btn-normal" lay-submit lay-filter="add">立即添加</button>
+			<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+		</div>
+	</div>
+</form>
+
+<!-- 数据库连接信息修改表单 -->
+<form action="" class="layui-form" th:object="${dbversionList}" id="connectionEditForm" style="display: none">
+	<div class="layui-form-item" style="display: none">
+		<label class="layui-form-label" for="id">主键</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" disabled id="id" lay-verify="required" name="id" placeholder="服务器地址" required
+				   type="text">
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-inline">
+			<label class="layui-form-label" for="update_hostIp">服务器地址</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="update_hostIp" lay-verify="required" name="update_hostIp"
+					   placeholder="服务器地址" readonly
+					   required type="text">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label" for="update_hostPort">端口</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="update_hostPort" lay-verify="required" name="update_hostPort"
+					   placeholder="服务器地址" readonly required type="text">
+			</div>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-inline">
+			<label class="layui-form-label" for="update_databaseName">数据库名称</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="update_databaseName" lay-verify="required" name="update_databaseName"
+					   placeholder="需要备份的数据库名称"
+					   readonly required type="text">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label" for="update_dbVersion">数据库版本</label>
+			<div class="layui-input-inline">
+				<select id="update_dbVersion" name="update_dbVersion" lay-verify="required">
+					<option value=""></option>
+					<option th:each="dbversion : ${dbversionList}" th:value="${dbversion.id}" th:text="${dbversion.dbVersion}"></option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-inline">
+			<label class="layui-form-label" for="update_username">数据库用户名</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" disabled id="update_username" lay-verify="required" name="update_username"
+					   placeholder="数据库用户名" required type="text">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label" for="update_password">数据库连接密码</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" disabled id="update_password" lay-verify="required" name="update_password"
+					   placeholder="数据库连接密码" required type="password">
+			</div>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-inline">
+			<label class="layui-form-label" for="update_savePath">保存路径</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="update_savePath" lay-verify="required" name="update_savePath"
+					   placeholder="保存路径,如:D:\db" required type="text">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label" for="update_fileName">保存文件夹名称</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="update_fileName" lay-verify="required" name="update_fileName"
+					   placeholder="如:mlpmisdb" required type="text">
+			</div>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label" for="update_saveType">备份格式</label>
+		<div class="layui-input-inline">
+			<select id="update_saveType" lay-filter="update_saveType" name="update_saveType">
+				<option id="sql" value="sql">.sql文件</option>
+				<option id="dump" value="dump">.dump文件</option>
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-input-block" style="margin-left: 0;text-align: center">
+			<button class="layui-btn layui-btn-primary" id="update_testConnection">连接测试</button>
+			<button class="layui-btn layui-btn-normal" lay-filter="update" lay-submit>立即修改</button>
+		</div>
+	</div>
+</form>
+
+<!--   备份规则表单     -->
+<form action="" class="layui-form" id="backupsRuleForm" style="display: none">
+	<div class="layui-form-item" style="display: none">
+		<input type="text" id="databaseId" value="">
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label" for="backupCycle">备份周期</label>
+		<div class="layui-input-inline">
+			<select id="backupCycle" name="backupCycle">
+				<option value=""></option>
+				<option value="1">1天</option>
+				<option value="2">2天</option>
+				<option value="3">3天</option>
+				<option value="4">4天</option>
+				<option value="5">5天</option>
+				<option value="6">6天</option>
+				<option value="7">7天</option>
+				<option value="8">8天</option>
+				<option value="9">9天</option>
+				<option value="10">10天</option>
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item" id="Monday">
+		<label class="layui-form-label">星期一</label>
+		<input lay-filter="check_all" lay-skin="primary" name="check_all" title="全选" type="checkbox">
+		<div class="layui-input-block">
+			<input lay-filter="time" lay-skin="primary" name="Monday0" title="00:00" type="checkbox"
+				   value="00:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday1" title="01:00" type="checkbox"
+				   value="01:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday2" title="02:00" type="checkbox"
+				   value="02:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday3" title="03:00" type="checkbox"
+				   value="03:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday4" title="04:00" type="checkbox"
+				   value="04:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday5" title="05:00" type="checkbox"
+				   value="05:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday6" title="06:00" type="checkbox"
+				   value="06:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday7" title="07:00" type="checkbox"
+				   value="07:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday8" title="08:00" type="checkbox"
+				   value="08:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday9" title="09:00" type="checkbox"
+				   value="09:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday10" title="10:00" type="checkbox"
+				   value="10:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday11" title="11:00" type="checkbox"
+				   value="11:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday12" title="12:00" type="checkbox"
+				   value="12:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday13" title="13:00" type="checkbox"
+				   value="13:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday14" title="14:00" type="checkbox"
+				   value="14:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday15" title="15:00" type="checkbox"
+				   value="15:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday16" title="16:00" type="checkbox"
+				   value="16:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday17" title="17:00" type="checkbox"
+				   value="17:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday18" title="18:00" type="checkbox"
+				   value="18:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday19" title="19:00" type="checkbox"
+				   value="19:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday20" title="20:00" type="checkbox"
+				   value="20:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday21" title="21:00" type="checkbox"
+				   value="21:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday22" title="22:00" type="checkbox"
+				   value="22:00">
+			<input lay-filter="time" lay-skin="primary" name="Monday23" title="23:00" type="checkbox"
+				   value="23:00">
+		</div>
+
+	</div>
+	<div class="layui-form-item" id="Tuesday">
+		<input lay-filter="check_all" lay-skin="primary" name="check_all" title="全选" type="checkbox">
+		<label class="layui-form-label">星期二</label>
+		<div class="layui-input-block">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday0" title="00:00" type="checkbox"
+				   value="00:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday1" title="01:00" type="checkbox"
+				   value="01:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday2" title="02:00" type="checkbox"
+				   value="02:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday3" title="03:00" type="checkbox"
+				   value="03:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday4" title="04:00" type="checkbox"
+				   value="04:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday5" title="05:00" type="checkbox"
+				   value="05:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday6" title="06:00" type="checkbox"
+				   value="06:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday7" title="07:00" type="checkbox"
+				   value="07:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday8" title="08:00" type="checkbox"
+				   value="08:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday9" title="09:00" type="checkbox"
+				   value="09:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday10" title="10:00" type="checkbox"
+				   value="10:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday11" title="11:00" type="checkbox"
+				   value="11:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday12" title="12:00" type="checkbox"
+				   value="12:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday13" title="13:00" type="checkbox"
+				   value="13:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday14" title="14:00" type="checkbox"
+				   value="14:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday15" title="15:00" type="checkbox"
+				   value="15:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday16" title="16:00" type="checkbox"
+				   value="16:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday17" title="17:00" type="checkbox"
+				   value="17:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday18" title="18:00" type="checkbox"
+				   value="18:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday19" title="19:00" type="checkbox"
+				   value="19:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday20" title="20:00" type="checkbox"
+				   value="20:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday21" title="21:00" type="checkbox"
+				   value="21:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday22" title="22:00" type="checkbox"
+				   value="22:00">
+			<input lay-filter="time" lay-skin="primary" name="Tuesday23" title="23:00" type="checkbox"
+				   value="23:00">
+		</div>
+	</div>
+	<div class="layui-form-item" id="Wednesday">
+		<input lay-filter="check_all" lay-skin="primary" name="check_all" title="全选" type="checkbox">
+		<label class="layui-form-label">星期三</label>
+		<div class="layui-input-block">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday0" title="00:00" type="checkbox"
+				   value="00:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday1" title="01:00" type="checkbox"
+				   value="01:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday2" title="02:00" type="checkbox"
+				   value="02:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday3" title="03:00" type="checkbox"
+				   value="03:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday4" title="04:00" type="checkbox"
+				   value="04:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday5" title="05:00" type="checkbox"
+				   value="05:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday6" title="06:00" type="checkbox"
+				   value="06:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday7" title="07:00" type="checkbox"
+				   value="07:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday8" title="08:00" type="checkbox"
+				   value="08:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday9" title="09:00" type="checkbox"
+				   value="09:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday10" title="10:00" type="checkbox"
+				   value="10:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday11" title="11:00" type="checkbox"
+				   value="11:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday12" title="12:00" type="checkbox"
+				   value="12:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday13" title="13:00" type="checkbox"
+				   value="13:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday14" title="14:00" type="checkbox"
+				   value="14:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday15" title="15:00" type="checkbox"
+				   value="15:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday16" title="16:00" type="checkbox"
+				   value="16:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday17" title="17:00" type="checkbox"
+				   value="17:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday18" title="18:00" type="checkbox"
+				   value="18:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday19" title="19:00" type="checkbox"
+				   value="19:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday20" title="20:00" type="checkbox"
+				   value="20:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday21" title="21:00" type="checkbox"
+				   value="21:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday22" title="22:00" type="checkbox"
+				   value="22:00">
+			<input lay-filter="time" lay-skin="primary" name="Wednesday23" title="23:00" type="checkbox"
+				   value="23:00">
+		</div>
+	</div>
+	<div class="layui-form-item" id="Thursday">
+		<input lay-filter="check_all" lay-skin="primary" name="check_all" title="全选" type="checkbox">
+		<label class="layui-form-label">星期四</label>
+		<div class="layui-input-block">
+			<input lay-filter="time" lay-skin="primary" name="Thursday0" title="00:00" type="checkbox"
+				   value="00:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday1" title="01:00" type="checkbox"
+				   value="01:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday2" title="02:00" type="checkbox"
+				   value="02:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday3" title="03:00" type="checkbox"
+				   value="03:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday4" title="04:00" type="checkbox"
+				   value="04:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday5" title="05:00" type="checkbox"
+				   value="05:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday6" title="06:00" type="checkbox"
+				   value="06:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday7" title="07:00" type="checkbox"
+				   value="07:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday8" title="08:00" type="checkbox"
+				   value="08:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday9" title="09:00" type="checkbox"
+				   value="09:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday10" title="10:00" type="checkbox"
+				   value="10:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday11" title="11:00" type="checkbox"
+				   value="11:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday12" title="12:00" type="checkbox"
+				   value="12:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday13" title="13:00" type="checkbox"
+				   value="13:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday14" title="14:00" type="checkbox"
+				   value="14:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday15" title="15:00" type="checkbox"
+				   value="15:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday16" title="16:00" type="checkbox"
+				   value="16:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday17" title="17:00" type="checkbox"
+				   value="17:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday18" title="18:00" type="checkbox"
+				   value="18:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday19" title="19:00" type="checkbox"
+				   value="19:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday20" title="20:00" type="checkbox"
+				   value="20:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday21" title="21:00" type="checkbox"
+				   value="21:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday22" title="22:00" type="checkbox"
+				   value="22:00">
+			<input lay-filter="time" lay-skin="primary" name="Thursday23" title="23:00" type="checkbox"
+				   value="23:00">
+		</div>
+	</div>
+	<div class="layui-form-item" id="Friday">
+		<input lay-filter="check_all" lay-skin="primary" name="check_all" title="全选" type="checkbox">
+		<label class="layui-form-label">星期五</label>
+		<div class="layui-input-block">
+			<input lay-filter="time" lay-skin="primary" name="Friday0" title="00:00" type="checkbox"
+				   value="00:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday1" title="01:00" type="checkbox"
+				   value="01:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday2" title="02:00" type="checkbox"
+				   value="02:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday3" title="03:00" type="checkbox"
+				   value="03:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday4" title="04:00" type="checkbox"
+				   value="04:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday5" title="05:00" type="checkbox"
+				   value="05:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday6" title="06:00" type="checkbox"
+				   value="06:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday7" title="07:00" type="checkbox"
+				   value="07:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday8" title="08:00" type="checkbox"
+				   value="08:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday9" title="09:00" type="checkbox"
+				   value="09:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday10" title="10:00" type="checkbox"
+				   value="10:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday11" title="11:00" type="checkbox"
+				   value="11:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday12" title="12:00" type="checkbox"
+				   value="12:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday13" title="13:00" type="checkbox"
+				   value="13:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday14" title="14:00" type="checkbox"
+				   value="14:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday15" title="15:00" type="checkbox"
+				   value="15:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday16" title="16:00" type="checkbox"
+				   value="16:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday17" title="17:00" type="checkbox"
+				   value="17:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday18" title="18:00" type="checkbox"
+				   value="18:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday19" title="19:00" type="checkbox"
+				   value="19:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday20" title="20:00" type="checkbox"
+				   value="20:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday21" title="21:00" type="checkbox"
+				   value="21:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday22" title="22:00" type="checkbox"
+				   value="22:00">
+			<input lay-filter="time" lay-skin="primary" name="Friday23" title="23:00" type="checkbox"
+				   value="23:00">
+		</div>
+	</div>
+	<div class="layui-form-item" id="Saturday">
+		<input lay-filter="check_all" lay-skin="primary" name="check_all" title="全选" type="checkbox">
+		<label class="layui-form-label">星期六</label>
+		<div class="layui-input-block">
+			<input lay-filter="time" lay-skin="primary" name="Saturday0" title="00:00" type="checkbox"
+				   value="00:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday1" title="01:00" type="checkbox"
+				   value="01:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday2" title="02:00" type="checkbox"
+				   value="02:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday3" title="03:00" type="checkbox"
+				   value="03:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday4" title="04:00" type="checkbox"
+				   value="04:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday5" title="05:00" type="checkbox"
+				   value="05:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday6" title="06:00" type="checkbox"
+				   value="06:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday7" title="07:00" type="checkbox"
+				   value="07:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday8" title="08:00" type="checkbox"
+				   value="08:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday9" title="09:00" type="checkbox"
+				   value="09:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday10" title="10:00" type="checkbox"
+				   value="10:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday11" title="11:00" type="checkbox"
+				   value="11:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday12" title="12:00" type="checkbox"
+				   value="12:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday13" title="13:00" type="checkbox"
+				   value="13:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday14" title="14:00" type="checkbox"
+				   value="14:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday15" title="15:00" type="checkbox"
+				   value="15:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday16" title="16:00" type="checkbox"
+				   value="16:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday17" title="17:00" type="checkbox"
+				   value="17:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday18" title="18:00" type="checkbox"
+				   value="18:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday19" title="19:00" type="checkbox"
+				   value="19:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday20" title="20:00" type="checkbox"
+				   value="20:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday21" title="21:00" type="checkbox"
+				   value="21:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday22" title="22:00" type="checkbox"
+				   value="22:00">
+			<input lay-filter="time" lay-skin="primary" name="Saturday23" title="23:00" type="checkbox"
+				   value="23:00">
+		</div>
+	</div>
+	<div class="layui-form-item" id="Sunday">
+		<input lay-filter="check_all" lay-skin="primary" name="check_all" title="全选" type="checkbox">
+		<label class="layui-form-label">星期日</label>
+		<div class="layui-input-block">
+			<input lay-filter="time" lay-skin="primary" name="Sunday0" title="00:00" type="checkbox"
+				   value="00:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday1" title="01:00" type="checkbox"
+				   value="01:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday2" title="02:00" type="checkbox"
+				   value="02:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday3" title="03:00" type="checkbox"
+				   value="03:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday4" title="04:00" type="checkbox"
+				   value="04:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday5" title="05:00" type="checkbox"
+				   value="05:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday6" title="06:00" type="checkbox"
+				   value="06:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday7" title="07:00" type="checkbox"
+				   value="07:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday8" title="08:00" type="checkbox"
+				   value="08:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday9" title="09:00" type="checkbox"
+				   value="09:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday10" title="10:00" type="checkbox"
+				   value="10:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday11" title="11:00" type="checkbox"
+				   value="11:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday12" title="12:00" type="checkbox"
+				   value="12:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday13" title="13:00" type="checkbox"
+				   value="13:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday14" title="14:00" type="checkbox"
+				   value="14:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday15" title="15:00" type="checkbox"
+				   value="15:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday16" title="16:00" type="checkbox"
+				   value="16:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday17" title="17:00" type="checkbox"
+				   value="17:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday18" title="18:00" type="checkbox"
+				   value="18:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday19" title="19:00" type="checkbox"
+				   value="19:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday20" title="20:00" type="checkbox"
+				   value="20:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday21" title="21:00" type="checkbox"
+				   value="21:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday22" title="22:00" type="checkbox"
+				   value="22:00">
+			<input lay-filter="time" lay-skin="primary" name="Sunday23" title="23:00" type="checkbox"
+				   value="23:00">
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-input-block" style="text-align: center;margin-left: 0">
+			<button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveRule">保存规则</button>
+			<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+		</div>
+	</div>
+</form>
+<script th:src="@{/static/lib/layui/layui.js}" charset="utf-8"></script>
+<script th:inline="javascript">
+	const ctx = /*[[ @{/} ]]*/ "";
+	layui.use(["form", "layer", "jquery", "table"], function () {
+		const form = layui.form;
+		const layer = layui.layer;
+		const $ = layui.jquery;
+		const table = layui.table;
+
+        table.render({
+            elem: "#connection_table",
+            id: "connection_table",
+            // 绑定工具栏
+            toolbar: "#connection_table_add",
+            url: ctx + "database/list",
+            method: "POST",
+            page: true,
+            cols: [ [
+                {type: "numbers", title: "序号", width: "5%", align: "center", fixed: "left", sort: true},
+                {field: "databaseName", title: "数据库名称", width: "10%", align: "center", sort: true},
+                {field: "hostIp", title: "服务器地址", width: "15%", align: "center"},
+                {field: "hostPort", title: "端口", width: "10%", align: "center"},
+                {field: "username", title: "数据库用户名", width: "10%", align: "center"},
+                {
+                    field: "password", title: "数据库连接密码", width: "10%", align: "center", templet: function () {
+                        return "************";
+                    }
+                },
+                {
+                    field: "savePath", title: "保存路径", width: "10%", align: "center", templet: function (d) {
+                        return "<div style='text-align:left'>" + d.savePath + "</div>";
+                    }
+                },
+                {field: "fileName", title: "保存文件名称", width: "10%", align: "center"},
+                {field: "saveType", title: "备份格式", width: "7%", align: "center"},
+                {field: "copyTime", title: "最后备份时间", width: "12%", align: "center"},
+                {
+                    field: "largestSize", title: "最大备份大小", width: "9%", align: "center",
+                    templet: function (d) {
+                        if (d["largestSize"] === null) return "";
+                        let mbSize = d["largestSize"] / 1024 / 1024;
+                        // toFixed(): 保留小数
+                        return mbSize > 1 ? mbSize.toFixed(2) + "M" : (mbSize * 1024).toFixed(2) + "KB";
+                    }
+                },
+                {field: "execFlag", title: "定时任务状态", width: "9%", align: "center", fixed: "right", templet: function (d) {
+                        let dbId = d.id;
+                        if (d.execFlag === 1) {
+                            return "<input type='checkbox' dbId='"+ dbId +"' lay-skin='switch' lay-text='ON|OFF' lay-filter='execFlag' checked>";
+                        } else if (d.execFlag === 0) {
+                            return "<input type='checkbox' dbId='"+ dbId +"' lay-skin='switch' lay-text='ON|OFF' lay-filter='execFlag'>";
+                        } else {
+                            return "";
+                        }
+                    }},
+                {title: "操作", toolbar: "#connection_table_toolbar", width: "33%", align: "center", fixed: "right"}
+            ] ]
+        });
+
+        // 监听定时任务状态
+        form.on("switch(execFlag)", function (data) {
+            let dbId = data.elem.attributes['dbId'].nodeValue;
+            let execFlag = data.elem.checked === true ? "1" : "0";
+            let param = {
+                "dbId": dbId,
+                "execFlag": execFlag
+            };
+			$.ajax({
+				type: "PUT",
+				url: ctx + "database/changeExecFlag",
+				data: param,
+				dataType: "json",
+				contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+				success: function (res) {
+					if (res.code === 200) {
+						layer.msg(res.msg, {icon: 1, time: 500});
+					} else {
+						layer.msg(res.msg, {icon: 0, time: 500});
+					}
+				},
+				error: function () {
+					layer.msg("发送修改定时任务状态请求失败", {icon: 2, time: 1000});
+				}
+			})
+			layer.close(index);
+        });
+
+        // 连接表单表工具栏触发事件
+        table.on("toolbar(connection_table)", function (obj) {
+            switch (obj.event) {
+                case "add":
+                    layer.open({
+                        // 1 - 页面层
+                        type: 1,
+                        title: "添加连接信息",
+                        area: ["850px", "70%"],
+                        content: $("#hostConnectForm"),
+						shade: [0.02, "#000"],
+                        resize: false
+                    });
+                    break;
+            }
+        });
+
+        // 选中checkbox
+        function bindCheckbox(week, backupTime) {
+            let checkboxArr;
+            for (let j = 0; j < backupTime.length; j++) {
+                checkboxArr = $("#backupsRuleForm").find(week).find("input[type='checkbox']");
+                for (let z = 0; z < checkboxArr.length; z++) {
+                    if (backupTime[j] === $(checkboxArr[z]).attr("value")) {
+                        $(checkboxArr[z]).prop("checked", true);// 标准写法
+                    }
+                }
+            }
+            if (backupTime.length === checkboxArr.length - 1) {
+                $("#backupsRuleForm").find(week).find("input[name='check_all']").prop("checked", true);
+            }
+        }
+
+        // 删除数组中的undefined值
+        function removeUndefinedElem(arr) {
+            for (let i = 0; i < arr.length; i++) {
+                if (typeof (arr[i]) === 'undefined') {
+                    arr.splice(i, 1);
+                    i = i - 1;
+                }
+            }
+            return arr;
+        }
+
+
+
+        // 连接信息保存文件加名称和数据库名称一致
+        $("#hostConnectForm").find("#databaseName").on("input", function () {
+            $("#hostConnectForm").find("#fileName").val($(this).val());
+        });
+
+        // 实现 全选/全不选
+        form.on("checkbox(check_all)", function () {
+            $(this).siblings("div[class='layui-input-block']").find("input").prop("checked", this.checked);
+            form.render("checkbox");
+        });
+
+        /**
+         * 当子项时间全部选中时，全选被选中
+         * 当子项时间未全部选中是，全选不被选中
+         */
+        form.on("checkbox(time)", function () {
+            if (this.checked) {
+                if ($(this).parent().find("input").not(":checked").length === 0) {
+                    $(this).parent().siblings("input").prop("checked", true);
+                    form.render("checkbox");
+                }
+            } else {
+                $(this).parent().siblings("input").prop("checked", false);
+                form.render("checkbox");
+            }
+        });
+
+        // 连接表单行工具栏触发事件
+        table.on("tool(connection_table)", function (obj) {
+            // 获得数据库连接数据
+            let databaseData = obj.data;
+            if (obj.event === "edit") {
+                layer.open({
+                    type: 1,
+                    title: "修改连接信息",
+                    area: ["850px", "70%"],
+                    content: $("#connectionEditForm"),
+                    resize: false,
+					shade: [0.02, "#000"]
+                });
+                // 填充数据
+                $("#id").val(databaseData.id);
+                $("#update_hostIp").val(databaseData.hostIp);
+                $("#update_hostPort").val(databaseData.hostPort);
+                $("#update_databaseName").val(databaseData.databaseName);
+                $("#update_username").val(databaseData.username);
+                $("#update_password").val(databaseData.password);
+                $("#update_savePath").val(databaseData.savePath);
+                $("#update_fileName").val(databaseData.fileName);
+                $("#update_saveType").val(databaseData.saveType);
+                $("#update_dbVersion").val(databaseData.dbVersion);
+                form.render("select");
+            } else if (obj.event === "backupRule") {
+                let ruleForm = layer.open({
+                    type: 1,
+                    title: "编辑备份规则",
+                    area: ["1030px", "100%"],
+                    content: $("#backupsRuleForm"),
+                    resize: false,
+					shade: [0.02, "#000"]
+                });
+
+                //全部的checkbox不选中
+                $("#backupsRuleForm").find("input[type='checkbox']").prop("checked", false);
+
+                $.ajax({
+                    type: "GET",
+                    url: ctx + "rule/get/" + databaseData.id,
+                    success: function (res) {
+                        console.log(res);
+                        for (let i = 0; i < res.length; i++) {
+                            let rule = res[i];
+                            let backupTime = rule.backupWholePoint.split(",");
+                            $("#backupsRuleForm").find("#databaseId").val(rule.databaseId);
+                            let backupCycle = rule.backupCycle;
+                            $("#backupsRuleForm").find("#backupCycle").val(backupCycle);
+                            switch (rule.backupWeek) {
+                                case 1:
+                                    bindCheckbox("#Sunday", backupTime);
+                                    break;
+                                case 2:
+                                    bindCheckbox("#Monday", backupTime);
+                                    break;
+                                case 3:
+                                    bindCheckbox("#Tuesday", backupTime);
+                                    break;
+                                case 4:
+                                    bindCheckbox("#Wednesday", backupTime);
+                                    break;
+                                case 5:
+                                    bindCheckbox("#Thursday", backupTime);
+                                    break;
+                                case 6:
+                                    bindCheckbox("#Friday", backupTime);
+                                    break;
+                                case 7:
+                                    bindCheckbox("#Saturday", backupTime);
+                                    break;
+                            }
+                        }
+                        form.render("checkbox");
+                        form.render("select");
+                    }
+                })
+                // 监听备份规则
+                form.on("submit(saveRule)", function (data) {
+                    let ruleData = data.field;
+                    let Sunday = [ruleData.Sunday0, ruleData.Sunday1, ruleData.Sunday2, ruleData.Sunday3, ruleData.Sunday4, ruleData.Sunday5, ruleData.Sunday6,
+                        ruleData.Sunday7, ruleData.Sunday8, ruleData.Sunday9, ruleData.Sunday10, ruleData.Sunday11, ruleData.Sunday12, ruleData.Sunday13, ruleData.Sunday14,
+                        ruleData.Sunday15, ruleData.Sunday16, ruleData.Sunday17, ruleData.Sunday18, ruleData.Sunday19, ruleData.Sunday20, ruleData.Sunday21,
+                        ruleData.Sunday22, ruleData.Sunday23];
+                    let Monday = [ruleData.Monday0, ruleData.Monday1, ruleData.Monday2, ruleData.Monday3, ruleData.Monday4, ruleData.Monday5, ruleData.Monday6,
+                        ruleData.Monday7, ruleData.Monday8, ruleData.Monday9, ruleData.Monday10, ruleData.Monday11, ruleData.Monday12, ruleData.Monday13,
+                        ruleData.Monday14, ruleData.Monday15, ruleData.Monday16, ruleData.Monday17, ruleData.Monday18, ruleData.Monday19, ruleData.Monday20,
+                        ruleData.Monday21, ruleData.Monday22, ruleData.Monday23];
+                    let Tuesday = [ruleData.Tuesday0, ruleData.Tuesday1, ruleData.Tuesday2, ruleData.Tuesday3, ruleData.Tuesday4, ruleData.Tuesday5, ruleData.Tuesday6,
+                        ruleData.Tuesday7, ruleData.Tuesday8, ruleData.Tuesday9, ruleData.Tuesday10, ruleData.Tuesday11, ruleData.Tuesday12, ruleData.Tuesday13,
+                        ruleData.Tuesday14, ruleData.Tuesday15, ruleData.Tuesday16, ruleData.Tuesday17, ruleData.Tuesday18, ruleData.Tuesday19, ruleData.Tuesday20,
+                        ruleData.Tuesday21, ruleData.Tuesday22, ruleData.Tuesday23];
+                    let Wednesday = [ruleData.Wednesday0, ruleData.Wednesday1, ruleData.Wednesday2, ruleData.Wednesday3, ruleData.Wednesday4, ruleData.Wednesday5,
+                        ruleData.Wednesday6, ruleData.Wednesday7, ruleData.Wednesday8, ruleData.Wednesday9, ruleData.Wednesday10, ruleData.Wednesday11, ruleData.Wednesday12,
+                        ruleData.Wednesday13, ruleData.Wednesday14, ruleData.Wednesday15, ruleData.Wednesday16, ruleData.Wednesday17, ruleData.Wednesday18,
+                        ruleData.Wednesday19, ruleData.Wednesday20, ruleData.Wednesday21, ruleData.Wednesday22, ruleData.Wednesday23];
+                    let Thursday = [ruleData.Thursday0, ruleData.Thursday1, ruleData.Thursday2, ruleData.Thursday3, ruleData.Thursday4, ruleData.Thursday5, ruleData.Thursday6,
+                        ruleData.Thursday7, ruleData.Thursday8, ruleData.Thursday9, ruleData.Thursday10, ruleData.Thursday11, ruleData.Thursday12, ruleData.Thursday13, ruleData.Thursday14,
+                        ruleData.Thursday15, ruleData.Thursday16, ruleData.Thursday17, ruleData.Thursday18, ruleData.Thursday19, ruleData.Thursday20, ruleData.Thursday21,
+                        ruleData.Thursday22, ruleData.Thursday23];
+                    let Friday = [ruleData.Friday0, ruleData.Friday1, ruleData.Friday2, ruleData.Friday3, ruleData.Friday4, ruleData.Friday5, ruleData.Friday6, ruleData.Friday7, ruleData.Friday8,
+                        ruleData.Friday9, ruleData.Friday10, ruleData.Friday11, ruleData.Friday12, ruleData.Friday13, ruleData.Friday14, ruleData.Friday15, ruleData.Friday16,
+                        ruleData.Friday17, ruleData.Friday18, ruleData.Friday19, ruleData.Friday20, ruleData.Friday21, ruleData.Friday22, ruleData.Friday23];
+                    let Saturday = [ruleData.Saturday0, ruleData.Saturday1, ruleData.Saturday2, ruleData.Saturday3, ruleData.Saturday4, ruleData.Saturday5, ruleData.Saturday6,
+                        ruleData.Saturday7, ruleData.Saturday8, ruleData.Saturday9, ruleData.Saturday10, ruleData.Saturday11, ruleData.Saturday12, ruleData.Saturday13,
+                        ruleData.Saturday14, ruleData.Saturday15, ruleData.Saturday16, ruleData.Saturday17, ruleData.Saturday18, ruleData.Saturday19, ruleData.Saturday20,
+                        ruleData.Saturday21, ruleData.Saturday22, ruleData.Saturday23];
+                    Sunday = removeUndefinedElem(Sunday);
+                    Monday = removeUndefinedElem(Monday);
+                    Tuesday = removeUndefinedElem(Tuesday);
+                    Wednesday = removeUndefinedElem(Wednesday);
+                    Thursday = removeUndefinedElem(Thursday);
+                    Friday = removeUndefinedElem(Friday);
+                    Saturday = removeUndefinedElem(Saturday);
+
+                    let param = {
+                        "databaseId": databaseData.id,
+                        "Sunday": Sunday,
+                        "Monday": Monday,
+                        "Tuesday": Tuesday,
+                        "Wednesday": Wednesday,
+                        "Thursday": Thursday,
+                        "Friday": Friday,
+                        "Saturday": Saturday,
+                        "backupCycle": ruleData.backupCycle
+                    }
+                    if (ruleData.backupCycle === '') {
+                        layer.msg("请选择备份周期", {icon: 4, time: 1000});
+                        return false;
+                    }
+                    console.log(param);
+                    $.ajax({
+                        type: "POST",
+                        url: "rule/save",
+                        dataType: "json",
+                        contentType: "application/x-www-form-urlencoded",
+                        data: param,
+                        success: function (res) {
+                            if (res.code === 200) {
+                                layer.msg(res.msg, {icon: 1, time: 1000});
+                                layer.close(ruleForm);
+                            } else {
+                                layer.msg(res.msg, {icon: 0, time: 1000});
+                            }
+                        },
+                        error: function () {
+                            layer.msg("保存备份规则失败", {icon: 2, time: 1000});
+                        }
+                    });
+                    return false;
+                });
+            } else if (obj.event === "copy") {
+                let loading = layer.msg('正在备份，请稍等...', {icon: 16, shade: 0.05, time: 0});
+                $.ajax({
+                    type: "POST",
+                    url: ctx + "database/backups",
+                    dataType: "json",
+                    contentType: "application/x-www-form-urlencoded",
+                    data: {
+                        "id": databaseData.id,
+                        "hostIp": databaseData.hostIp,
+                        "hostPort": databaseData.hostPort,
+                        "username": databaseData.username,
+                        "password": atob(databaseData.password),
+                        "databaseName": databaseData.databaseName,
+                        "dbVersion": databaseData.dbVersion,
+                        "savePath": databaseData.savePath,
+                        "fileName": databaseData.fileName,
+                        "saveType": databaseData.saveType
+                    },
+                    success: function (res) {
+                        layer.close(loading);
+                        if (res.code === 200) {
+                            layer.alert(res.msg, {icon: 1, shade: [0.03, "#000"]});
+                            table.reload("connection_table", {
+                                page: {
+                                    curr: 1
+                                }
+                            })
+                        } else {
+                            layer.msg(res.msg, {icon: 0, time: 1000});
+                        }
+                    },
+                    error: function () {
+                        layer.close(loading);
+                        layer.msg("发送备份请求失败", {icon: 2, time: 1000});
+                    }
+                });
+			} else if (obj.event === "view") {
+                $(document).ready(function () {
+                    table.render({
+                        elem: "#data_tables",
+                        url: ctx + "table/list",
+                        height: "full-100",
+                        method: "GET",
+                        page: true,
+                        loading: true,
+                        where: {
+                            "databaseName": databaseData.databaseName,
+                            "dbVersion": databaseData.dbVersion,
+                            "hostIp": databaseData.hostIp,
+                            "hostPort": databaseData.hostPort,
+                            "username": databaseData.username,
+                            "password": atob(databaseData.password)
+                        },
+                        limits: [10, 20, 30, 50, 100, 200],
+                        cols: [ [
+                            {
+                                type: "numbers",
+                                title: "序号",
+                                width: "10%",
+                                fixed: "left",
+                                sort: true,
+                                align: "center"
+                            },
+                            {field: "tableName", title: "表名", width: "35%", align: "left"},
+                            {field: "tableDesc", title: "表描述", width: "30%", align: "left"},
+                            {field: "recordNum", title: "记录行数", width: "15%", align: "center"},
+                            {title: "操作", width: "10%", align: "center", toolbar: "#data_tables_tool"}
+                        ]],
+                        done: function () {
+                        }
+                    });
+                });
+                layer.open({
+                    type: 1,
+                    title: "数据表",
+                    area: "70%",
+                    content: $("#data_tables_div"),
+                    resize: false,
+					shade: [0.02, "#000"]
+                });
+
+                // 查看表结构
+                table.on("tool(data_tables)", function (obj) {
+                    let tableData = obj.data;
+                    switch (obj.event) {
+                        case "structure":
+                            table.render({
+                                elem: "#table_structure",
+                                url: "structure/list",
+                                limits: [10, 20, 30, 50, 100, 200],
+                                height: "full-100",
+                                page: true,
+                                where: {
+                                    "hostIp": databaseData.hostIp,
+                                    "hostPort":  databaseData.hostPort,
+                                    "databaseName": databaseData.databaseName,
+                                    "dbVersion": databaseData.dbVersion,
+                                    "tableName": tableData.tableName,
+                                    "username": databaseData.username,
+                                    "password": atob(databaseData.password)
+                                },
+                                cols: [ [
+                                    {type: "numbers", title: "序号", width: "10%", sort: true, align: "center"},
+                                    {field: "columnName", title: "字段", width: "30%", align: "left"},
+                                    {field: "columnType", title: "类型", width: "30%", align: "left"},
+                                    {field: "columnComment", title: "描述", width: "30%", align: "left"}
+                                ] ]
+                            });
+                            layer.open({
+                                type: 1,
+                                title: "表结构",
+                                area: "50%",
+                                content: $("#table_structure_div"),
+                                resize: false,
+								shade: [0.01, "#000"]
+                            });
+                            break;
+                    }
+                });
+			} else if (obj.event === "delete") {
+                layer.confirm("确定要删除该条连接信息吗？", {icon: 3, title: "提示", shade: [0.03, "#000"]}, function () {
+                    let idx = layer.load(1, {icon: 2, shade: [0.1, '#fff']});
+                    $.ajax({
+                        type: "DELETE",
+                        url: ctx + "database/delete/" + databaseData.id,
+                        success: function (res) {
+                            layer.close(idx);
+                            if (res.code === 200) {
+                                layer.msg(res.msg, {icon: 1, time: 1000});
+                                // 重载连接信息表格
+                                table.reload("connection_table", {
+                                    page: {
+                                        curr: 1
+                                    }
+                                })
+                            } else {
+                                layer.close(idx);
+                                layer.msg(res.msg, {icon: 0, time: 1000});
+                            }
+                        },
+                        error: function () {
+                            layer.close(idx);
+                            layer.msg("发送删除请求失败", {icon: 0, time: 1000});
+                        }
+                    });
+                });
+			}
+        });
+
+        // 一定要测试连接之后才能添加
+        let updateConnection = false;
+        // 测试连接
+        $(document).on("click", "#update_testConnection", function () {
+
+            // 获取数据
+            let $hostIp = $("#update_hostIp").val();
+            let $hostPort = $("#update_hostPort").val();
+            let $databaseName = $("#update_databaseName").val();
+            let $dbVersion = $("#update_dbVersion").val();
+            let $username = $("#update_username").val();
+            let $password = $("#update_password").val();
+            if ($hostIp === "") {
+                layer.msg("请填写服务器地址", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($hostPort === "") {
+                layer.msg("请填写端口号", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($databaseName === "") {
+                layer.msg("请填写数据库名称", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($dbVersion === "") {
+                layer.msg("请选择数据库版本", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($username === "") {
+                layer.msg("请填写数据库用户名", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($password === "") {
+                layer.msg("请填写连接密码", {icon: 4, time: 1000});
+                return false;
+            }
+            let index = layer.load(1, {icon: 2, shade: [0.1, '#fff']});
+            $.ajax({
+                type: "POST",
+                url: ctx + "testConnection",
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded",
+                data: {
+                    "hostIp": $hostIp,
+                    "hostPort": $hostPort,
+                    "databaseName": $databaseName,
+                    "dbVersion": $dbVersion,
+                    "username": $username,
+                    // base64解密
+                    "password": atob($password)
+                },
+                success: function (res) {
+                    layer.close(index);
+                    if (res.code === 200) {
+                        updateConnection = true;
+                        layer.msg(res.msg, {icon: 1, time: 1000});
+                    } else {
+                        layer.msg(res.msg, {icon: 0, time: 1000});
+                    }
+                },
+                error: function () {
+                    layer.close(index);
+                    layer.alert("发送测试连接请求失败");
+                }
+            });
+            return false;
+        });
+        // 监听修改
+        form.on('submit(update)', function(data){
+            data = data.field;
+            console.log(data);
+            if (updateConnection !== true) {
+                layer.msg("请先测试连接是否成功", {icon: 0, time: 1000});
+                return false;
+            }
+            let index = layer.load(1, {icon: 2, shade: [0.3, '#fff']});
+            let param = {
+                "id": data.id,
+                "hostIp": data.update_hostIp,
+                "hostPort": data.update_hostPort,
+                "username": data.update_username,
+                "password": data.update_password,
+                "databaseName": data.update_databaseName,
+                "dbVersion": data.update_dbVersion,
+                "savePath": data.update_savePath,
+                "fileName": data.update_fileName,
+                "saveType": data.update_saveType,
+                "copyTime": null
+            }
+            $.ajax({
+                type: "PUT",
+                url: ctx + "database/update",
+                dataType: "json",
+                contentType: "application/json",
+                data: JSON.stringify(param),
+                success: function (res) {
+                    layer.close(index);
+                    if (res.code === 200) {
+                        layer.msg(res.msg, {icon: 1, time: 1000});
+                        // 关闭所有页面层
+                        layer.closeAll("page");
+                        // 重载连接信息表格
+                        table.reload("connection_table", {
+                            page: {
+                                curr: 1
+                            }
+                        })
+                    } else {
+                        layer.msg(res.msg, {icon: 0, time: 1000});
+                    }
+                },
+                error: function () {
+                    layer.close(index);
+                    layer.msg("发送修改请求失败", {icon: 2, time: 1000});
+                }
+            });
+            updateConnection = false;
+            return false;
+        });
+
+
+        // 一定要测试连接之后才能添加
+        let connection = false;
+        // 测试连接
+        $(document).on("click", "#testConnection", function () {
+
+            // 获取数据
+            let $hostIp = $("#hostIp").val();
+            let $hostPort = $("#hostPort").val();
+            let $databaseName = $("#databaseName").val();
+            let $dbVersion = $("#dbVersion").val();
+            let $username = $("#username").val();
+            let $password = $("#password").val();
+            if ($hostIp === "") {
+                layer.msg("请填写服务器地址", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($hostPort === "") {
+                layer.msg("请填写端口号", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($databaseName === "") {
+                layer.msg("请填写数据库名称", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($dbVersion === "") {
+                layer.msg("请选择数据库版本", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($username === "") {
+                layer.msg("请填写数据库用户名", {icon: 4, time: 1000});
+                return false;
+            }
+            if ($password === "") {
+                layer.msg("请填写连接密码", {icon: 4, time: 1000});
+                return false;
+            }
+            let index = layer.load(1, {icon: 2, shade: [0.3, '#fff']});
+            $.ajax({
+                type: "POST",
+                url: ctx + "testConnection",
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded",
+                data: {
+                    "hostIp": $hostIp,
+                    "hostPort": $hostPort,
+                    "databaseName": $databaseName,
+                    "dbVersion": $dbVersion,
+                    "username": $username,
+                    "password": $password
+                },
+                success: function (res) {
+                    layer.close(index);
+                    if (res.code === 200) {
+                        connection = true;
+                        layer.msg(res.msg, {icon: 1, time: 1000});
+                    } else {
+                        layer.msg(res.msg, {icon: 0, time: 1000});
+                    }
+                },
+                error: function () {
+                    layer.close(index);
+                    layer.msg("发送测试连接请求失败", {icon: 2, time: 1000});
+                }
+            });
+            return false;
+        });
+        // 监听添加
+        form.on('submit(add)', function(data){
+            data = data.field;
+            if (connection !== true) {
+                layer.msg("请先测试连接是否成功", {icon: 0, time: 1000});
+                return false;
+            }
+            let index = layer.load(1, {icon: 2, shade: [0.3, '#fff']});
+            $.ajax({
+                type: "POST",
+                url: ctx + "database/add",
+                dataType: "json",
+                contentType: "application/x-www-form-urlencoded",
+                data: {
+                    "hostIp": data.hostIp,
+                    "hostPort": data.hostPort,
+                    "username": data.username,
+                    "password": data.password,
+                    "databaseName": data.databaseName,
+                    "savePath": data.savePath,
+                    "fileName": data.fileName,
+                    "saveType": data.saveType,
+                    "dbVersion": data.dbVersion
+                },
+                success: function (res) {
+                    layer.close(index);
+                    if (res.code === 200) {
+                        layer.msg(res.msg, {icon: 1, time: 1000});
+                        // 关闭所有页面层
+                        layer.closeAll("page");
+                        // 重载连接信息表格
+                        table.reload("connection_table", {
+                            page: {
+                                curr: 1
+                            }
+                        })
+                    } else {
+                        layer.msg(res.msg, {icon: 0, time: 1000});
+                    }
+                },
+                error: function () {
+                    layer.close(index);
+                    layer.msg("发送添加请求失败", {icon: 2, time: 1000});
+                }
+            });
+            return false;
+        })
+	})
+</script>
+</body>
+</html>
