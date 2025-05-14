@@ -12,14 +12,21 @@
 
 ## 使用说明
 #### 流程图
-![输入图片说明](https://foruda.gitee.com/images/1666060685463625427/2b3105f4_8327188.png "屏幕截图")
+![image](https://github.com/user-attachments/assets/63e3d0d8-0574-494d-86c7-8a3dff28161e)
 #### 功能展示
-![输入图片说明](https://foruda.gitee.com/images/1666060712664234928/f09a70e3_8327188.png "屏幕截图")
-![输入图片说明](https://foruda.gitee.com/images/1666060723280437609/43f73e92_8327188.png "屏幕截图")
-![输入图片说明](https://foruda.gitee.com/images/1666060731455308140/a78e9403_8327188.png "屏幕截图")
-![输入图片说明](https://foruda.gitee.com/images/1666060736118897062/53cb9a5c_8327188.png "屏幕截图")
-![输入图片说明](https://foruda.gitee.com/images/1666060740208689507/b8793239_8327188.png "屏幕截图")
-![输入图片说明](https://foruda.gitee.com/images/1666060747112324273/dfe3ef73_8327188.png "屏幕截图")
+![image](https://github.com/user-attachments/assets/8f1a9d8f-6e59-49ee-ae38-69fb6d20eaa6)
+
+![image](https://github.com/user-attachments/assets/8c0696cd-80a0-49b0-b908-555516fe5a05)
+
+![image](https://github.com/user-attachments/assets/8005a9e5-a004-4a50-bb2f-79ac7346422c)
+
+![image](https://github.com/user-attachments/assets/b8294342-a026-49a3-bf95-03c1b7e9434b)
+
+![image](https://github.com/user-attachments/assets/9e798f38-6603-42fa-bcdb-1a8692ca3dc3)
+
+![image](https://github.com/user-attachments/assets/cceb2248-0558-43f6-a3b7-e078a44eed1d)
+
+
 #### 工作负荷
 - 能够对公司的数据安全进行统一及时的处理，包括:查询、修改、添加、删除
 - 在行为日志中查看系统漏洞
